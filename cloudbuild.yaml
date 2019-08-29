@@ -1,0 +1,14 @@
+timeout: 780s
+steps:
+- name: gcr.io/kaniko-project/executor
+  args:
+    - --destination=asia.gcr.io/$PROJECT_ID/guestbook:${COMMIT_SHA}
+    - --cache=true
+    - --cache-ttl=6h
+    - --dockerfile=guestbook/php-redis/Dockerfile
+- name: argoproj/argocd
+  entrypoint: 'bash'
+  args: ['-c', 'argocd login --insecure ${_ARGO_SERVER} --username admin --password ${_ARGOCD_PW} && argocd app set ${_PRJ} -p image.tag=${COMMIT_SHA} && argocd app sync ${_PRJ}'] 
+substitutions:
+  _PRJ: guestbook
+  _ARGO_SERVER: 34.85.104.22
