@@ -1,5 +1,5 @@
-apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
-kind: Deployment
+apiVersion: argoproj.io/v1alpha1  # 変更
+kind: Rollout  # 変更
 metadata:
   name: frontend
 spec:
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: php-redis
-        image: asia.gcr.io/ideagram-4d-stg/guestbook:latest
+        image: asia.gcr.io/ideagram-4d-stg/guestbook:{{ .Values.image.tag }}
         resources:
           requests:
             cpu: 110m
@@ -31,3 +31,15 @@ spec:
           # value: env
         ports:
         - containerPort: 80
+  # ここから下を追記
+  minReadySeconds: 30
+  revisionHistoryLimit: 3
+  strategy:
+    canary:
+      steps:
+      - setWeight: 20 
+      - pause: 
+          duration: 20
+      - setWeight: 50
+      - pause:
+          duration: 20
